@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
-html, body, pre, code, kbd, samp {
-    font-family: "Press Start 2P", system-ui;
+@import "nes.css/css/nes.min.css";
+
+html, body, pre, code, kbd, samp, button {
+    font-family: "PressStart2P", system-ui;
 }
 
 a {

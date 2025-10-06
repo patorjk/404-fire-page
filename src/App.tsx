@@ -60,9 +60,15 @@ const colorOptions = [
 
 interface AppInnerProps {
   colors: string[];
+  isDarkMode?: boolean;
+  bottomFireEnabled?: boolean;
 }
 
-function AppInner({ colors }: AppInnerProps) {
+function AppInner({
+  colors,
+  isDarkMode = fals,
+  bottomFireEnabled = true,
+}: AppInnerProps) {
   const { isLoaded, isError } = useLoadFont();
   const fontLoaded = isLoaded || isError;
 
@@ -83,10 +89,6 @@ function AppInner({ colors }: AppInnerProps) {
     // Set canvas size to window size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    const isDarkMode = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
 
     ctx.fillStyle = isDarkMode ? "black" : "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -115,7 +117,6 @@ function AppInner({ colors }: AppInnerProps) {
             imageData.data[i + 1] < 128 &&
             imageData.data[i + 2] < 128;
         if (pixelCheck) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           const cellKey = `${Math.floor(x / 4)},${Math.floor(y / 4)}`;
           computedTextCells.add(cellKey);
         }
@@ -123,7 +124,11 @@ function AppInner({ colors }: AppInnerProps) {
     }
 
     setTextCells(computedTextCells);
-  }, [fontLoaded]);
+  }, [fontLoaded, isDarkMode]);
+
+  const goHome = () => {
+    window.location.href = "https://patorjk.com/";
+  };
 
   return (
     <>
@@ -135,7 +140,31 @@ function AppInner({ colors }: AppInnerProps) {
       {textCells.size > 0 && (
         <DoomFireTorchContainer colors={colors} flammable={textCells} />
       )}
-      <DoomFireContainer colors={colors} />
+      <DoomFireContainer colors={colors} fireEnabled={bottomFireEnabled} />
+
+      <div
+        style={{
+          position: "fixed",
+          height: "80px",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 10,
+          pointerEvents: "none",
+        }}
+      >
+        <button
+          type={"button"}
+          className={"nes-btn "}
+          style={{ justifySelf: "center", pointerEvents: "auto" }}
+          onClick={goHome}
+        >
+          Home
+        </button>
+      </div>
     </>
   );
 }
@@ -143,9 +172,14 @@ function AppInner({ colors }: AppInnerProps) {
 function App() {
   const { width = 0, height = 0 } = useWindowSize();
   const [count, setCount] = useState(0);
+  const [bottomFireEnabled, setBottomFireEnabled] = useState<boolean>(true);
   const [colors, setColors] = useState<string[]>(() => {
     const index = Math.floor(Math.random() * 9) + 1;
     return colorOptions[index];
+  });
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
   useHotkeys("1", () => {
@@ -182,11 +216,21 @@ function App() {
   useHotkeys("r", () => {
     setCount((prev) => prev + 1);
   });
+  useHotkeys("t", () => {
+    setIsDarkMode((prev) => !prev);
+  });
+  useHotkeys("f", () => {
+    setBottomFireEnabled((prev) => !prev);
+  });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center ">
-      {/* eslint-disable-next-line @typescript-eslint/restrict-template-expressions */}
-      <AppInner key={`${width},${height},${count}`} colors={colors} />
+      <AppInner
+        key={`${width},${height},${count},${isDarkMode}`}
+        colors={colors}
+        isDarkMode={isDarkMode}
+        bottomFireEnabled={bottomFireEnabled}
+      />
     </div>
   );
 }

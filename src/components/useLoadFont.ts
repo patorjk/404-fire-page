@@ -24,7 +24,9 @@ export const useLoadFont = () => {
       }
     };
 
-    loadFont();
+    loadFont().catch((err: unknown) => {
+      console.error(err);
+    });
   }, []);
 
   return { isLoaded: fontLoaded, isError };

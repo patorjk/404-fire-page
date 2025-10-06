@@ -4,6 +4,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useEffect, useRef, useState } from "react";
 import { DoomFireTorchContainer } from "./components/DoomFireTorchContainer.tsx";
 import { useLoadFont } from "./components/useLoadFont.ts";
+import { useWindowSize } from "usehooks-ts";
 
 const defaultFireColors = [
   "#771f0700",
@@ -28,28 +29,40 @@ const greenFireColors = [
 ];
 
 const yellowRedFireColors = ["#FF634700", "#FF6347", "#FFD700"];
+const pinkFireColors = ["#FF69B400", "#FF69B4", "pink"];
+const blueFireColors = ["#0000FF00", "skyblue"];
+const purpleFireColors = ["#6666FF00", "#CBC3E3"];
+const eightColors = ["#771A0F00", "#E8541A", "#F6C363", "#F3DEC3"];
+const nineColors = ["#0F1A7700", "#1A54E8", "#63C3F6", "#C3DEF3"];
 
-const purpleFireColors = ["#FF69B400", "#FF69B4", "#BA55D3"];
+const grayFire = [
+  "#37373700",
+  "#373737",
+  "#727272",
+  "#858585",
+  "#9a9a9a",
+  "#a7a7a7",
+  "#d3d3d3",
+];
 
-function App() {
-  const [colors, setColors] = useState<string[]>(defaultFireColors);
+const colorOptions = [
+  grayFire,
+  defaultFireColors,
+  purpleRedFireColor,
+  greenFireColors,
+  yellowRedFireColors,
+  pinkFireColors,
+  blueFireColors,
+  purpleFireColors,
+  eightColors,
+  nineColors,
+];
 
-  useHotkeys("1", () => {
-    setColors(defaultFireColors);
-  });
-  useHotkeys("2", () => {
-    setColors(purpleRedFireColor);
-  });
-  useHotkeys("3", () => {
-    setColors(greenFireColors);
-  });
-  useHotkeys("4", () => {
-    setColors(yellowRedFireColors);
-  });
-  useHotkeys("5", () => {
-    setColors(purpleFireColors);
-  });
+interface AppInnerProps {
+  colors: string[];
+}
 
+function AppInner({ colors }: AppInnerProps) {
   const { isLoaded, isError } = useLoadFont();
   const fontLoaded = isLoaded || isError;
 
@@ -66,16 +79,20 @@ function App() {
     if (!ctx) return;
 
     if (canvas.width === 0 || canvas.height === 0) return;
-    console.log("yo");
+
     // Set canvas size to window size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    ctx.fillStyle = "white";
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+
+    ctx.fillStyle = isDarkMode ? "black" : "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw text
-    ctx.fillStyle = "black";
+    ctx.fillStyle = isDarkMode ? "white" : "black";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "90px 'PressStart2P', system-ui";
@@ -90,12 +107,14 @@ function App() {
     for (let y = 0; y < canvas.height; y++) {
       for (let x = 0; x < canvas.width; x++) {
         const i = (y * canvas.width + x) * 4;
-        // Check if pixel is black (or dark)
-        if (
-          imageData.data[i] < 128 &&
-          imageData.data[i + 1] < 128 &&
-          imageData.data[i + 2] < 128
-        ) {
+        const pixelCheck = isDarkMode
+          ? imageData.data[i] > 128 &&
+            imageData.data[i + 1] > 128 &&
+            imageData.data[i + 2] > 128
+          : imageData.data[i] < 128 &&
+            imageData.data[i + 1] < 128 &&
+            imageData.data[i + 2] < 128;
+        if (pixelCheck) {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           const cellKey = `${Math.floor(x / 4)},${Math.floor(y / 4)}`;
           computedTextCells.add(cellKey);
@@ -107,7 +126,7 @@ function App() {
   }, [fontLoaded]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center ">
+    <>
       <canvas
         ref={canvasRef}
         style={{ position: "fixed", top: 0, bottom: 0, left: 0, right: 0 }}
@@ -117,6 +136,57 @@ function App() {
         <DoomFireTorchContainer colors={colors} flammable={textCells} />
       )}
       <DoomFireContainer colors={colors} />
+    </>
+  );
+}
+
+function App() {
+  const { width = 0, height = 0 } = useWindowSize();
+  const [count, setCount] = useState(0);
+  const [colors, setColors] = useState<string[]>(() => {
+    const index = Math.floor(Math.random() * 9) + 1;
+    return colorOptions[index];
+  });
+
+  useHotkeys("1", () => {
+    setColors(colorOptions[1]);
+  });
+  useHotkeys("2", () => {
+    setColors(colorOptions[2]);
+  });
+  useHotkeys("3", () => {
+    setColors(colorOptions[3]);
+  });
+  useHotkeys("4", () => {
+    setColors(colorOptions[4]);
+  });
+  useHotkeys("5", () => {
+    setColors(colorOptions[5]);
+  });
+  useHotkeys("6", () => {
+    setColors(colorOptions[6]);
+  });
+  useHotkeys("7", () => {
+    setColors(colorOptions[7]);
+  });
+  useHotkeys("8", () => {
+    setColors(colorOptions[8]);
+  });
+  useHotkeys("9", () => {
+    setColors(colorOptions[9]);
+  });
+  useHotkeys("0", () => {
+    setColors(colorOptions[0]);
+  });
+
+  useHotkeys("r", () => {
+    setCount((prev) => prev + 1);
+  });
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center ">
+      {/* eslint-disable-next-line @typescript-eslint/restrict-template-expressions */}
+      <AppInner key={`${width},${height},${count}`} colors={colors} />
     </div>
   );
 }

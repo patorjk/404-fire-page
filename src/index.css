@@ -1,19 +1,24 @@
 @import "tailwindcss";
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+html, body, pre, code, kbd, samp {
+    font-family: "Press Start 2P", system-ui;
 }
+
+a {
+    font-weight: 500;
+    color: #646cff;
+    text-decoration: inherit;
+}
+
 a:hover {
-  color: #535bf2;
+    color: #535bf2;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    place-items: center;
+    min-width: 320px;
+    min-height: 100vh;
 }

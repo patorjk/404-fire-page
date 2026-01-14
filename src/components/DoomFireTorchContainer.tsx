@@ -5,11 +5,13 @@ import { useResizeObserver } from "usehooks-ts";
 interface DoomFireTorchContainerProps {
   colors: string[];
   flammable: Set<string>;
+  fireEnabled?: boolean;
 }
 
 export const DoomFireTorchContainer = ({
   colors,
   flammable,
+  fireEnabled = true,
 }: DoomFireTorchContainerProps) => {
   const ref = useRef<HTMLElement>(null);
 
@@ -35,7 +37,7 @@ export const DoomFireTorchContainer = ({
     >
       {height > 0 && width > 0 && (
         <DoomFireTorch
-          fireEnabled={true}
+          fireEnabled={fireEnabled}
           fireColors={colors}
           pixelSize={4}
           height={height}

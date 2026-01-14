@@ -61,13 +61,13 @@ const colorOptions = [
 interface AppInnerProps {
   colors: string[];
   isDarkMode?: boolean;
-  bottomFireEnabled?: boolean;
+  fireEnabled?: boolean;
 }
 
 function AppInner({
   colors,
-  isDarkMode = fals,
-  bottomFireEnabled = true,
+  isDarkMode = false,
+  fireEnabled = true,
 }: AppInnerProps) {
   const { isLoaded, isError } = useLoadFont();
   const fontLoaded = isLoaded || isError;
@@ -93,14 +93,19 @@ function AppInner({
     ctx.fillStyle = isDarkMode ? "black" : "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const title = urlParams.get("title") || "404";
+    const subtitle = urlParams.get("subtitle") || "Page not found";
+
     // Draw text
     ctx.fillStyle = isDarkMode ? "white" : "black";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "90px 'PressStart2P', system-ui";
-    ctx.fillText("404", canvas.width / 2, canvas.height / 2 - 40);
+    ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 40);
     ctx.font = "26px 'PressStart2P', system-ui";
-    ctx.fillText("Page not found", canvas.width / 2, canvas.height / 2 + 60);
+    ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 60);
 
     // Pre-compute which grid cells contain text
     const computedTextCells = new Set<string>();
@@ -138,9 +143,13 @@ function AppInner({
       />
 
       {textCells.size > 0 && (
-        <DoomFireTorchContainer colors={colors} flammable={textCells} />
+        <DoomFireTorchContainer
+          colors={colors}
+          flammable={textCells}
+          fireEnabled={fireEnabled}
+        />
       )}
-      <DoomFireContainer colors={colors} fireEnabled={bottomFireEnabled} />
+      <DoomFireContainer colors={colors} fireEnabled={fireEnabled} />
 
       <div
         style={{
@@ -172,7 +181,7 @@ function AppInner({
 function App() {
   const { width = 0, height = 0 } = useWindowSize();
   const [count, setCount] = useState(0);
-  const [bottomFireEnabled, setBottomFireEnabled] = useState<boolean>(true);
+  const [fireEnabled, setFireEnabled] = useState<boolean>(true);
   const [colors, setColors] = useState<string[]>(() => {
     const index = Math.floor(Math.random() * 9) + 1;
     return colorOptions[index];
@@ -220,7 +229,23 @@ function App() {
     setIsDarkMode((prev) => !prev);
   });
   useHotkeys("f", () => {
-    setBottomFireEnabled((prev) => !prev);
+    setFireEnabled((prev) => !prev);
+  });
+
+  useEffect(() => {
+    let timer: number;
+    const toggleFire = () => {
+      window.clearTimeout(timer);
+      setFireEnabled(false);
+      timer = window.setTimeout(() => {
+        setFireEnabled(true);
+      }, 1000);
+    };
+    window.addEventListener("dblclick", toggleFire);
+
+    return () => {
+      window.removeEventListener("dblclick", toggleFire);
+    };
   });
 
   return (
@@ -229,7 +254,7 @@ function App() {
         key={`${width},${height},${count},${isDarkMode}`}
         colors={colors}
         isDarkMode={isDarkMode}
-        bottomFireEnabled={bottomFireEnabled}
+        fireEnabled={fireEnabled}
       />
     </div>
   );
